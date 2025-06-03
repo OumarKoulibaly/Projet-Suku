@@ -1,0 +1,12 @@
+Django==5.0.1
+djangorestframework
+django-cors-headers
+djangorestframework-simplejwt
+mysqlclient
+phonenumbers
+pillow
+python-decouple
+django-filter
+drf-yasg
+django-jazzmin
+psycopg2-binary # PostgreSQL database adapter for Python
