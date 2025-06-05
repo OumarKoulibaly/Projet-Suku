@@ -1,7 +1,8 @@
 Django==5.0.1
 djangorestframework
 django-cors-headers
-djangorestframework-simplejwt
+djangorestframework-simplejwt # Implémentation du jeton JWT pour DRF 
+dj-rest-auth    # Utilitaires d'authentification REST API
 mysqlclient
 phonenumbers
 pillow
@@ -10,3 +11,4 @@ django-filter
 drf-yasg
 django-jazzmin
 psycopg2-binary # PostgreSQL database adapter for Python
+python-dotenv # Pour la gestion des variables d'environnement
