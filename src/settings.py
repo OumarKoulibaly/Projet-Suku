@@ -12,28 +12,46 @@
 
 from pathlib import Path
 import os
+from datetime import timedelta
+from dotenv import load_dotenv
+
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+load_dotenv()
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG')
+BASE_DIR = Path(__file__).resolve().parent.parent
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
+def get_env_variable(var_name):
+    try:
+        return os.getenv(var_name)
+    except KeyError:
+        error_msg = f"La variable d'environnement '{var_name}' n'est pas définie"
+        raise  ImportWarning(error_msg)
+
+
+ALLOWED_HOSTS = [
+    host.strip() 
+    for host in get_env_variable ('ALLOWED_HOSTS').split(',')
+    if host.strip()
+]
+
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+]
 
 
 # Application definition
 
 INSTALLED_APPS = [
-    'jazzmin',
     'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -41,13 +59,17 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
     'rest_framework',
+    'rest_framework.authtoken',
     'rest_framework_simplejwt.token_blacklist',  # Pour la gestion des jetons JWT
     'dj_rest_auth',  # Pour les fonctionnalités d'authentification REST
     'dj_rest_auth.registration',  # Pour l'enregistrement des utilisateurs
-    'phonenumber_field',  # Pour la gestion des numéros de téléphone
-    'pillow',  # Pour le traitement des images
+    'allauth',
+    'allauth.account', 
+    # 'pillow',  # Pour le traitement des images
     'jazzmin',  # Pour l'interface d'administration améliorée
+    'phonenumber_field',  # Pour la validation des numéros de téléphone
 
     'accounts',
     'products',
@@ -55,6 +77,12 @@ INSTALLED_APPS = [
     'delivery',
     'orders',
 ]
+# Configuration AllAuth
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+ACCOUNT_LOGIN_METHOD = {'email'} 
+ACCOUNT_UNIQUE_EMAIL = True 
+
+SITE_ID=1
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -64,10 +92,35 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware', # Ajout du middleware AllAuth
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'src.urls'
 AUTH_USER_MODEL = 'accounts.User'   
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+}
+
+# djangorestframework-simplejwt
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'AUTH_HEADER_TYPES': ('Bearer',),
+}
+
+# dj-rest-auth
+REST_AUTH = {
+    "USE_JWT": True,
+    "JWT_AUTH_COOKIE": "_auth",  # Name of access token cookie
+    "JWT_AUTH_REFRESH_COOKIE": "_refresh", # Name of refresh token cookie
+    "JWT_AUTH_HTTPONLY": False,  # Makes sure refresh token is sent
+}
 
 TEMPLATES = [
     {
@@ -119,6 +172,9 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+
+
 
 
 # Internationalization
