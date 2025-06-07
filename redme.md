@@ -46,9 +46,81 @@ Le projet est divisé en plusieurs **applications Django** indépendantes selon 
 git clone lien du project
 cd Projet-Suku-master
 python -m venv env
-source env/bin/activate
+source env/bin/activate sur windows
 pip install -r requirements.txt
 python manage.py migrate
 python manage.py runserver
 
+
+## 🧪 Tests des API
+
+### 🔑 Authentication API Endpoints
+
+#### 1. Inscription (Register)
+```bash
+curl -X POST http://localhost:8000/auth/registration/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "password1": "StrongPass123!",
+    "password2": "StrongPass123!"
+  }'
+```
+
+#### 2. Connexion (Login)
+```bash
+curl -X POST http://localhost:8000/auth/login/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "password": "StrongPass123!"
+  }'
+```
+
+#### 3. Obtenir les Détails de l'Utilisateur
+```bash
+curl -X GET http://localhost:8000/auth/user/ \
+  -H "Authorization: Bearer your_access_token"
+```
+
+#### 4. Rafraîchir le Token
+```bash
+curl -X POST http://localhost:8000/auth/token/refresh/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "refresh": "your_refresh_token"
+  }'
+```
+
+#### 5. Déconnexion (Logout)
+```bash
+curl -X POST http://localhost:8000/auth/logout/ \
+  -H "Authorization: Bearer your_access_token"
+```
+
+### 📝 Notes Importantes
+
+1. **Tokens JWT** :
+   - Le token d'accès expire après 1 heure
+   - Le token de rafraîchissement expire après 1 jour
+   - Conservez ces tokens de manière sécurisée
+
+2. **Headers Requis** :
+   - Pour les requêtes authentifiées : `Authorization: Bearer your_access_token`
+   - Pour toutes les requêtes : `Content-Type: application/json`
+
+3. **Réponses** :
+   - Succès : Code 200/201 avec les données
+   - Erreur d'authentification : Code 401
+   - Erreur de permission : Code 403
+   - Ressource non trouvée : Code 404
+
+### 🔧 Configuration Postman
+
+1. Créez une nouvelle collection "Suku API"
+2. Importez ces endpoints
+3. Créez un environnement avec les variables :
+   - `base_url`: http://localhost:8000
+   - `access_token`: [à remplir après login]
+   - `refresh_token`: [à remplir après login]
 

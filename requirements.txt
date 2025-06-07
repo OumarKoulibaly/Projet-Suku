@@ -4,6 +4,7 @@ django-cors-headers
 djangorestframework-simplejwt # Implémentation du jeton JWT pour DRF 
 dj-rest-auth    # Utilitaires d'authentification REST API
 mysqlclient
+dj-rest-auth[with_social]
 django-allauth # Pour la gestion des comptes utilisateurs et l'authentification sociale
 django-phonenumber-field[phonenumbers]
 pillow

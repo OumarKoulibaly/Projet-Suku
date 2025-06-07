@@ -66,7 +66,8 @@ INSTALLED_APPS = [
     'dj_rest_auth',  # Pour les fonctionnalités d'authentification REST
     'dj_rest_auth.registration',  # Pour l'enregistrement des utilisateurs
     'allauth',
-    'allauth.account', 
+    'allauth.account',
+    'allauth.socialaccount',
     # 'pillow',  # Pour le traitement des images
     'jazzmin',  # Pour l'interface d'administration améliorée
     'phonenumber_field',  # Pour la validation des numéros de téléphone
@@ -78,9 +79,20 @@ INSTALLED_APPS = [
     'orders',
 ]
 # Configuration AllAuth
-ACCOUNT_EMAIL_VERIFICATION = 'none'
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+ACCOUNT_CONFIRM_EMAIL_ON_GET = True
+ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_LOGIN_METHOD = {'email'} 
-ACCOUNT_UNIQUE_EMAIL = True 
+ACCOUNT_UNIQUE_EMAIL = True
+LOGIN_URL = '/admin'
+
+# ci desous la configuration pour l'envoie d'email
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND')
+EMAIL_HOST = os.getenv('EMAIL_HOST')
+EMAIL_PORT = os.getenv('EMAIL_PORT')
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS')
 
 SITE_ID=1
 
