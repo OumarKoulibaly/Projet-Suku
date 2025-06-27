@@ -124,3 +124,14 @@ curl -X POST http://localhost:8000/auth/logout/ \
    - `access_token`: [à remplir après login]
    - `refresh_token`: [à remplir après login]
 
+
+Teste des endpoinds de l'authentification
+📋 ORDRE DE TEST RECOMMANDÉ :
+Création de compte → Vérifiez le statut 201
+Vérification email → Vérifiez le statut 200
+Connexion → Récupérez les tokens
+Profil utilisateur → Vérifiez les données
+Modifier profil → Testez la modification
+Refresh token → Testez le renouvellement
+Changer mot de passe → Testez la modification
+Déconnexion → Testez la déconnexion
