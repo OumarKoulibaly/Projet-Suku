@@ -1,5 +1,9 @@
 from rest_framework import serializers
 from .models import Category, Product
+from .exceptions import (
+    ProductAlreadyExistsException, CategoryAlreadyExistsException,
+    InvalidPriceException, InvalidStockException
+)
 
 class CategorySerializer(serializers.ModelSerializer):
     product_count = serializers.SerializerMethodField()
@@ -11,6 +15,17 @@ class CategorySerializer(serializers.ModelSerializer):
     
     def get_product_count(self, obj):
         return obj.products.count()
+    
+    def validate_name(self, value):
+        if len(value.strip()) < 2:
+            raise serializers.ValidationError("Le nom de la catégorie doit contenir au moins 2 caractères.")
+        return value.strip()
+    
+    def validate_slug(self, value):
+        if value:
+            if Category.objects.filter(slug=value).exists():
+                raise CategoryAlreadyExistsException()
+        return value
 
 class ProductSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(source='category.name', read_only=True)
@@ -43,19 +58,33 @@ class ProductCreateSerializer(serializers.ModelSerializer):
         model = Product
         fields = ['name', 'slug', 'description', 'price', 'stock', 'image', 'category', 'is_available']
     
+    def validate_name(self, value):
+        if len(value.strip()) < 3:
+            raise serializers.ValidationError("Le nom du produit doit contenir au moins 3 caractères.")
+        return value.strip()
+    
+    def validate_description(self, value):
+        if len(value.strip()) < 10:
+            raise serializers.ValidationError("La description doit contenir au moins 10 caractères.")
+        return value.strip()
+    
     def validate_price(self, value):
         if value <= 0:
-            raise serializers.ValidationError("Le prix doit être supérieur à 0")
+            raise InvalidPriceException()
         return value
     
     def validate_stock(self, value):
         if value < 0:
-            raise serializers.ValidationError("Le stock ne peut pas être négatif")
+            raise InvalidStockException()
         return value
     
     def validate_slug(self, value):
         if value:
-            # Vérifier que le slug est unique
             if Product.objects.filter(slug=value).exists():
-                raise serializers.ValidationError("Ce slug existe déjà")
+                raise ProductAlreadyExistsException()
+        return value
+    
+    def validate_category(self, value):
+        if not value.is_available if hasattr(value, 'is_available') else True:
+            raise serializers.ValidationError("La catégorie sélectionnée n'est pas disponible.")
         return value 
