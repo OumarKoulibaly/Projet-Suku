@@ -8,4 +8,11 @@ router.register(r'orders', OrderViewSet, basename='order')
 
 urlpatterns = [
     path('', include(router.urls)),
+    # URLs personnalisées pour les actions du panier
+    path('carts/current/', CartViewSet.as_view({'get': 'current'}), name='cart-current'),
+    path('carts/add_item/', CartViewSet.as_view({'post': 'add_item'}), name='cart-add-item'),
+    path('carts/update_item/', CartViewSet.as_view({'put': 'update_item'}), name='cart-update-item'),
+    path('carts/remove_item/', CartViewSet.as_view({'delete': 'remove_item'}), name='cart-remove-item'),
+    path('carts/clear/', CartViewSet.as_view({'post': 'clear'}), name='cart-clear'),
+    path('carts/summary/', CartViewSet.as_view({'get': 'summary'}), name='cart-summary'),
 ] 

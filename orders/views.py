@@ -40,10 +40,50 @@ class CartViewSet(viewsets.ModelViewSet):
         except Cart.DoesNotExist:
             raise CartNotFoundException()
     
-    @action(detail=True, methods=['post'])
-    def add_item(self, request, pk=None):
-        """Ajouter un article au panier"""
-        cart = self.get_object()
+    def list(self, request, *args, **kwargs):
+        """Liste des paniers actifs de l'utilisateur"""
+        queryset = self.get_queryset()
+        
+        # Normalement, un utilisateur n'a qu'un seul panier actif
+        if queryset.exists():
+            cart = queryset.first()
+            serializer = self.get_serializer(cart)
+            return Response({
+                'message': 'Panier récupéré avec succès',
+                'data': serializer.data
+            })
+        else:
+            return Response({
+                'message': 'Aucun panier actif trouvé',
+                'data': None
+            })
+    
+    @action(detail=False, methods=['get'])
+    def current(self, request):
+        """Récupérer le panier actuel de l'utilisateur"""
+        try:
+            cart = Cart.objects.get(user=request.user, is_active=True)
+            serializer = self.get_serializer(cart)
+            return Response({
+                'message': 'Panier actuel récupéré avec succès',
+                'data': serializer.data
+            })
+        except Cart.DoesNotExist:
+            return Response({
+                'message': 'Aucun panier actif trouvé',
+                'data': None
+            })
+    
+    @action(detail=False, methods=['post'])
+    def add_item(self, request):
+        """Ajouter un article au panier actuel"""
+        # Récupérer ou créer le panier actuel
+        cart, created = Cart.objects.get_or_create(
+            user=request.user, 
+            is_active=True,
+            defaults={'user': request.user}
+        )
+        
         serializer = CartItemSerializer(data=request.data, context={'request': request})
         
         if serializer.is_valid():
@@ -69,9 +109,14 @@ class CartViewSet(viewsets.ModelViewSet):
                 cart_item.quantity = new_quantity
                 cart_item.save()
             
+            # Récupérer le panier mis à jour
+            cart.refresh_from_db()
+            cart_serializer = self.get_serializer(cart)
+            
             return Response({
                 'message': 'Article ajouté au panier avec succès',
-                'data': CartItemSerializer(cart_item).data
+                'item': CartItemSerializer(cart_item).data,
+                'cart': cart_serializer.data
             }, status=status.HTTP_200_OK)
         
         return Response({
@@ -81,36 +126,61 @@ class CartViewSet(viewsets.ModelViewSet):
             'status_code': 400
         }, status=status.HTTP_400_BAD_REQUEST)
     
-    @action(detail=True, methods=['put'])
-    def update_item(self, request, pk=None):
-        """Modifier la quantité d'un article"""
-        cart = self.get_object()
+    @action(detail=False, methods=['put'])
+    def update_item(self, request):
+        """Modifier la quantité d'un article dans le panier actuel"""
+        try:
+            cart = Cart.objects.get(user=request.user, is_active=True)
+        except Cart.DoesNotExist:
+            raise CartNotFoundException()
+        
         item_id = request.data.get('item_id')
         quantity = request.data.get('quantity')
         
-        if not item_id or not quantity:
+        if not item_id or quantity is None:
             return Response({
                 'error': 'Données manquantes',
                 'message': 'item_id et quantity sont requis.',
                 'status_code': 400
             }, status=status.HTTP_400_BAD_REQUEST)
         
+        if quantity <= 0:
+            return Response({
+                'error': 'Quantité invalide',
+                'message': 'La quantité doit être supérieure à 0.',
+                'status_code': 400
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
         try:
             cart_item = CartItem.objects.get(id=item_id, cart=cart)
+            
+            # Vérifier le stock
+            if quantity > cart_item.product.stock:
+                raise InsufficientStockException()
+            
             cart_item.quantity = quantity
             cart_item.save()
             
+            # Récupérer le panier mis à jour
+            cart.refresh_from_db()
+            cart_serializer = self.get_serializer(cart)
+            
             return Response({
                 'message': 'Quantité mise à jour avec succès',
-                'data': CartItemSerializer(cart_item).data
+                'item': CartItemSerializer(cart_item).data,
+                'cart': cart_serializer.data
             }, status=status.HTTP_200_OK)
         except CartItem.DoesNotExist:
             raise CartItemNotFoundException()
     
-    @action(detail=True, methods=['delete'])
-    def remove_item(self, request, pk=None):
-        """Supprimer un article du panier"""
-        cart = self.get_object()
+    @action(detail=False, methods=['delete'])
+    def remove_item(self, request):
+        """Supprimer un article du panier actuel"""
+        try:
+            cart = Cart.objects.get(user=request.user, is_active=True)
+        except Cart.DoesNotExist:
+            raise CartNotFoundException()
+        
         item_id = request.data.get('item_id')
         
         if not item_id:
@@ -124,25 +194,63 @@ class CartViewSet(viewsets.ModelViewSet):
             cart_item = CartItem.objects.get(id=item_id, cart=cart)
             cart_item.delete()
             
+            # Récupérer le panier mis à jour
+            cart.refresh_from_db()
+            cart_serializer = self.get_serializer(cart)
+            
             return Response({
-                'message': 'Article supprimé du panier avec succès'
-            }, status=status.HTTP_204_NO_CONTENT)
+                'message': 'Article supprimé du panier avec succès',
+                'cart': cart_serializer.data
+            }, status=status.HTTP_200_OK)
         except CartItem.DoesNotExist:
             raise CartItemNotFoundException()
     
-    @action(detail=True, methods=['post'])
-    def clear(self, request, pk=None):
-        """Vider le panier"""
-        cart = self.get_object()
+    @action(detail=False, methods=['post'])
+    def clear(self, request):
+        """Vider le panier actuel"""
+        try:
+            cart = Cart.objects.get(user=request.user, is_active=True)
+        except Cart.DoesNotExist:
+            raise CartNotFoundException()
         
         if not cart.items.exists():
             raise CartEmptyException()
         
         cart.items.all().delete()
         
+        # Récupérer le panier mis à jour
+        cart.refresh_from_db()
+        cart_serializer = self.get_serializer(cart)
+        
         return Response({
-            'message': 'Panier vidé avec succès'
+            'message': 'Panier vidé avec succès',
+            'cart': cart_serializer.data
         }, status=status.HTTP_200_OK)
+    
+    @action(detail=False, methods=['get'])
+    def summary(self, request):
+        """Résumé du panier actuel (nombre d'articles, prix total)"""
+        try:
+            cart = Cart.objects.get(user=request.user, is_active=True)
+            return Response({
+                'message': 'Résumé du panier récupéré avec succès',
+                'data': {
+                    'total_items': cart.total_items,
+                    'total_price': cart.total_price,
+                    'total_price_with_tax': cart.total_price_with_tax,
+                    'items_count': cart.items.count()
+                }
+            })
+        except Cart.DoesNotExist:
+            return Response({
+                'message': 'Aucun panier actif trouvé',
+                'data': {
+                    'total_items': 0,
+                    'total_price': 0,
+                    'total_price_with_tax': 0,
+                    'items_count': 0
+                }
+            })
 
 class OrderViewSet(viewsets.ModelViewSet):
     """Gestion des commandes"""

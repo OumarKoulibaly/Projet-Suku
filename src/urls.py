@@ -37,7 +37,7 @@ urlpatterns = [
     path('auth/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
     path('accounts/', include('accounts.urls')),  # URLs d'authentification personnalisées
     path('', include('products.urls')),  # API des produits
-    path('', include('orders.urls')),  # API des commandes
+    path('orders/', include('orders.urls')),  # API des commandes et paniers
 
     
 ]+ static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)
