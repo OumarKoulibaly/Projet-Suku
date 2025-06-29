@@ -79,14 +79,14 @@ Ajoute un article au panier actuel. Si le produit existe déjà, la quantité es
 
 ### 3. Modifier la quantité d'un article
 
-**PUT** `api/orders/carts/update_item/`
+**POST** `api/orders/carts/update_item/`
 
 Modifie la quantité d'un article spécifique dans le panier.
 
 **Corps de la requête :**
 ```json
 {
-    "item_id": 1,
+    "item_id": 6,
     "quantity": 4
 }
 ```
@@ -96,7 +96,7 @@ Modifie la quantité d'un article spécifique dans le panier.
 {
     "message": "Quantité mise à jour avec succès",
     "item": {
-        "id": 1,
+        "id": 6,
         "product": {...},
         "quantity": 4,
         "total_price": "10.00"
@@ -111,14 +111,14 @@ Modifie la quantité d'un article spécifique dans le panier.
 
 ### 4. Supprimer un article du panier
 
-**DELETE** `api/orders/carts/remove_item/`
+**POST** `api/orders/carts/remove_item/`
 
 Supprime un article spécifique du panier.
 
 **Corps de la requête :**
 ```json
 {
-    "item_id": 1
+    "item_id": 6
 }
 ```
 

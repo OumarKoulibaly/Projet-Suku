@@ -126,16 +126,22 @@ class CartViewSet(viewsets.ModelViewSet):
             'status_code': 400
         }, status=status.HTTP_400_BAD_REQUEST)
     
-    @action(detail=False, methods=['put'])
+    @action(detail=False, methods=['post'])
     def update_item(self, request):
         """Modifier la quantité d'un article dans le panier actuel"""
+        print(f"DEBUG: update_item appelé avec data: {request.data}")
+        
         try:
             cart = Cart.objects.get(user=request.user, is_active=True)
+            print(f"DEBUG: Panier trouvé: {cart.id}")
         except Cart.DoesNotExist:
+            print("DEBUG: Panier non trouvé")
             raise CartNotFoundException()
         
         item_id = request.data.get('item_id')
         quantity = request.data.get('quantity')
+        
+        print(f"DEBUG: item_id={item_id}, quantity={quantity}")
         
         if not item_id or quantity is None:
             return Response({
@@ -153,6 +159,7 @@ class CartViewSet(viewsets.ModelViewSet):
         
         try:
             cart_item = CartItem.objects.get(id=item_id, cart=cart)
+            print(f"DEBUG: CartItem trouvé: {cart_item.id}, produit: {cart_item.product.name}")
             
             # Vérifier le stock
             if quantity > cart_item.product.stock:
@@ -171,17 +178,23 @@ class CartViewSet(viewsets.ModelViewSet):
                 'cart': cart_serializer.data
             }, status=status.HTTP_200_OK)
         except CartItem.DoesNotExist:
+            print(f"DEBUG: CartItem {item_id} non trouvé dans le panier {cart.id}")
             raise CartItemNotFoundException()
     
-    @action(detail=False, methods=['delete'])
+    @action(detail=False, methods=['post'])
     def remove_item(self, request):
         """Supprimer un article du panier actuel"""
+        print(f"DEBUG: remove_item appelé avec data: {request.data}")
+        
         try:
             cart = Cart.objects.get(user=request.user, is_active=True)
+            print(f"DEBUG: Panier trouvé: {cart.id}")
         except Cart.DoesNotExist:
+            print("DEBUG: Panier non trouvé")
             raise CartNotFoundException()
         
         item_id = request.data.get('item_id')
+        print(f"DEBUG: item_id={item_id}")
         
         if not item_id:
             return Response({
@@ -192,6 +205,7 @@ class CartViewSet(viewsets.ModelViewSet):
         
         try:
             cart_item = CartItem.objects.get(id=item_id, cart=cart)
+            print(f"DEBUG: CartItem trouvé: {cart_item.id}, produit: {cart_item.product.name}")
             cart_item.delete()
             
             # Récupérer le panier mis à jour
@@ -203,6 +217,7 @@ class CartViewSet(viewsets.ModelViewSet):
                 'cart': cart_serializer.data
             }, status=status.HTTP_200_OK)
         except CartItem.DoesNotExist:
+            print(f"DEBUG: CartItem {item_id} non trouvé dans le panier {cart.id}")
             raise CartItemNotFoundException()
     
     @action(detail=False, methods=['post'])
