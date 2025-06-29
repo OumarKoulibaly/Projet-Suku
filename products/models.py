@@ -21,6 +21,14 @@ class Category(models.Model):
         ordering = ['name']
 
 class Product(models.Model):
+    ORIGIN_CHOICES = [
+        ('local', 'Local'),
+        ('imported', 'Importé'),
+        ('organic', 'Bio'),
+        ('conventional', 'Conventionnel'),
+        ('fair_trade', 'Commerce équitable'),
+    ]
+    
     name = models.CharField(max_length=250)
     slug = models.SlugField(max_length=250, unique=True, blank=True)
     description = models.TextField()
@@ -28,6 +36,7 @@ class Product(models.Model):
     stock = models.PositiveIntegerField()
     image = models.ImageField(upload_to='products/', blank=True, null=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='products')
+    origin = models.CharField(max_length=20, choices=ORIGIN_CHOICES, default='local')
     is_available = models.BooleanField(default=True)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)

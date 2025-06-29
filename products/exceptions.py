@@ -74,11 +74,17 @@ def custom_exception_handler(exc, context):
                 'message': 'Vous n\'avez pas les permissions nécessaires.',
                 'status_code': 403
             }
+        elif response.status_code == 409:
+            response.data = {
+                'error': 'Conflit',
+                'message': 'Un conflit s\'est produit avec la ressource.',
+                'details': response.data,
+                'status_code': 409
+            }
         elif response.status_code == 500:
             response.data = {
                 'error': 'Erreur serveur',
                 'message': 'Une erreur interne s\'est produite.',
                 'status_code': 500
             }
-    
-    return response 
+    return response

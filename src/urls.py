@@ -19,6 +19,8 @@ from django.urls import path, include, re_path
 from django.conf import settings
 from django.conf.urls.static import static
 from allauth.account.views import ConfirmEmailView
+from accounts.views import CustomTokenObtainPairView, CustomTokenRefreshView
+from rest_framework_simplejwt.views import TokenVerifyView
 
 urlpatterns = [
   re_path(
@@ -29,7 +31,13 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('auth/', include('dj_rest_auth.urls')),
     path('auth/registration/', include('dj_rest_auth.registration.urls')),
+    # URLs JWT personnalisées
+    path('auth/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('auth/token/refresh/', CustomTokenRefreshView.as_view(), name='token_refresh'),
+    path('auth/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
+    path('accounts/', include('accounts.urls')),  # URLs d'authentification personnalisées
     path('', include('products.urls')),  # API des produits
+    path('', include('orders.urls')),  # API des commandes
 
     
 ]+ static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)

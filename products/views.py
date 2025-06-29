@@ -1,4 +1,3 @@
-from django.shortcuts import render, get_object_or_404
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -70,7 +69,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     permission_classes = [IsAuthenticatedOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['category', 'is_available']
+    filterset_fields = ['category', 'is_available', 'origin']
     search_fields = ['name', 'description', 'slug']
     ordering_fields = ['name', 'price', 'created_at', 'stock']
     ordering = ['-created_at']

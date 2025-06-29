@@ -30,6 +30,7 @@ class CategorySerializer(serializers.ModelSerializer):
 class ProductSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(source='category.name', read_only=True)
     category_slug = serializers.CharField(source='category.slug', read_only=True)
+    origin_display = serializers.CharField(source='get_origin_display', read_only=True)
     image_url = serializers.SerializerMethodField()
     
     class Meta:
@@ -37,7 +38,7 @@ class ProductSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'slug', 'description', 'price', 'stock', 
             'image', 'image_url', 'category', 'category_name', 'category_slug',
-            'is_available', 'created_at', 'updated_at'
+            'origin', 'origin_display', 'is_available', 'created_at', 'updated_at'
         ]
         read_only_fields = ['created_at', 'updated_at']
     
@@ -56,7 +57,7 @@ class ProductDetailSerializer(ProductSerializer):
 class ProductCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
-        fields = ['name', 'slug', 'description', 'price', 'stock', 'image', 'category', 'is_available']
+        fields = ['name', 'slug', 'description', 'price', 'stock', 'image', 'category', 'origin', 'is_available']
     
     def validate_name(self, value):
         if len(value.strip()) < 3:
@@ -85,6 +86,7 @@ class ProductCreateSerializer(serializers.ModelSerializer):
         return value
     
     def validate_category(self, value):
-        if not value.is_available if hasattr(value, 'is_available') else True:
-            raise serializers.ValidationError("La catégorie sélectionnée n'est pas disponible.")
+        # Vérifier que la catégorie existe et est valide
+        if not value:
+            raise serializers.ValidationError("Une catégorie doit être sélectionnée.")
         return value 
