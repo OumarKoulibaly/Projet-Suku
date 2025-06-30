@@ -19,6 +19,9 @@ from .exceptions import (
     ProductNotAvailableForOrderException
 )
 from products.exceptions import InsufficientStockException
+from delivery.models import Delivery
+from notifications.models import Notification
+from notifications.services import NotificationService
 
 class CartViewSet(viewsets.ModelViewSet):
     """Gestion du panier d'achat"""
@@ -297,6 +300,15 @@ class OrderViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         order = serializer.save()
         
+        # Créer automatiquement une livraison
+        Delivery.objects.create(
+            order=order,
+            status='preparation'
+        )
+        
+        # Créer une notification de confirmation de commande
+        NotificationService.notify_order_status_change(order, 'confirmed')
+        
         return Response({
             'message': 'Commande créée avec succès',
             'data': OrderSerializer(order, context={'request': request}).data
@@ -350,6 +362,9 @@ class OrderViewSet(viewsets.ModelViewSet):
             created_by=request.user
         )
         
+        # Notifier le changement de statut
+        NotificationService.notify_order_status_change(order, 'confirmed')
+        
         return Response({
             'message': 'Commande confirmée avec succès',
             'data': OrderSerializer(order, context={'request': request}).data
@@ -378,6 +393,9 @@ class OrderViewSet(viewsets.ModelViewSet):
             comment='Commande annulée par l\'utilisateur',
             created_by=request.user
         )
+        
+        # Notifier l'annulation
+        NotificationService.notify_order_status_change(order, 'cancelled')
         
         return Response({
             'message': 'Commande annulée avec succès',

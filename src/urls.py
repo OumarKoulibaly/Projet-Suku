@@ -38,6 +38,8 @@ urlpatterns = [
     path('accounts/', include('accounts.urls')),  # URLs d'authentification personnalisées
     path('', include('products.urls')),  # API des produits
     path('orders/', include('orders.urls')),  # API des commandes et paniers
+    path('delivery/', include('delivery.urls')),  # API des livraisons
+    path('notifications/', include('notifications.urls')),  # API des notifications
 
     
 ]+ static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)

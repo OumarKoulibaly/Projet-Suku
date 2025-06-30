@@ -135,3 +135,11 @@ Modifier profil → Testez la modification
 Refresh token → Testez le renouvellement
 Changer mot de passe → Testez la modification
 Déconnexion → Testez la déconnexion
+
+
+📋 Ordre de Test Recommandé
+Authentification → Obtenir le token JWT
+Créer des données de test → python manage.py create_sample_data
+Panier → Ajouter des articles, modifier, supprimer
+Commande → Créer une commande depuis le panier
+Gestion → Confirmer, annuler, consulter l'historique

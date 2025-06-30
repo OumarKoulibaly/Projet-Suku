@@ -14,3 +14,4 @@ drf-yasg
 django-jazzmin
 psycopg2-binary # PostgreSQL database adapter for Python
 python-dotenv # Pour la gestion des variables d'environnement
+psycopg2-2.9.10
